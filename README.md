@@ -254,10 +254,13 @@ Response
 }
 ```
 ## Task Types
-# Task Type	Description	Parameters
-full_aggregation	Aggregates posts, users, and comments	limit (optional)
-posts_only	Fetches only posts	limit (optional)
-users_with_posts	Fetches users with their posts	userId (optional)
+
+|Task Type  | Description | Parameters |
+|----------------|----------|--------------|
+|full_aggregation | Aggregates  | posts, users, and comments	limit (optional)
+|posts_only | Fetches only posts| limit (optional)
+|users_with_posts|  Fetches users with their posts  | userId (optional)
+
 ## 🧪 Testing
 Run API Tests
 ```bash
