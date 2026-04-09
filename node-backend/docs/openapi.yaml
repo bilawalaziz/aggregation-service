@@ -1,0 +1,136 @@
+openapi: 3.0.0
+info:
+  title: Data Aggregation Service API
+  version: 1.0.0
+  description: Data aggregation service with async processing
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    TaskRequest:
+      type: object
+      required:
+        - taskType
+      properties:
+        taskType:
+          type: string
+          enum: [full_aggregation, posts_only, users_with_posts]
+          description: Type of aggregation to perform
+        parameters:
+          type: object
+          properties:
+            limit:
+              type: integer
+              minimum: 1
+              maximum: 100
+            userId:
+              type: integer
+        priority:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+    
+    TaskResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        taskId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+    
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            status:
+              type: integer
+            timestamp:
+              type: string
+              format: date-time
+
+security:
+  - bearerAuth: []
+
+paths:
+  /tasks:
+    post:
+      summary: Create a new aggregation task
+      description: Submits a new task for asynchronous data aggregation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+            example:
+              taskType: full_aggregation
+              parameters:
+                limit: 10
+              priority: high
+      responses:
+        '202':
+          description: Task accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid or missing JWT
+        '429':
+          description: Rate limit exceeded
+    
+  /tasks/{id}:
+    get:
+      summary: Get task status
+      description: Retrieves the current status of a submitted task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Task ID
+      responses:
+        '200':
+          description: Task status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Task not found
+
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Service is healthy
